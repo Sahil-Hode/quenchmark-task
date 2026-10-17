@@ -74,6 +74,7 @@ export const getProducts = async (req, res, next) => {
         200,
         {
           products,
+          productData: products, // Alias so both .products and .productData work seamlessly
           pagination: {
             total,
             totalPages,
