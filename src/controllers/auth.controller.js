@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { generateToken } from '../utils/jwt.js';
 import { env } from '../config/env.js';
+import { smsService } from '../services/sms.service.js';
 
 /**
  * Send OTP to user's mobile number
@@ -11,10 +12,8 @@ export const sendOtp = async (req, res, next) => {
   try {
     const { mobile } = req.body;
 
-    // Generate 6 digit OTP (default to 123456 in dev/test, or random 6 digit)
-    const otp = env.NODE_ENV === 'production' 
-      ? Math.floor(100000 + Math.random() * 900000).toString() 
-      : '123456';
+    // Generate 6 digit OTP (always 6 digits)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Upsert user by mobile
@@ -33,14 +32,19 @@ export const sendOtp = async (req, res, next) => {
 
     console.log(`📱 [AUTH] OTP generated for ${mobile}: ${otp}`);
 
+    // Dispatch OTP via Fast2SMS
+    const smsResult = await smsService.sendOtp(mobile, otp);
+
     return res.status(200).json(
       new ApiResponse(
         200,
         {
           mobile: user.mobile,
-          // Return OTP in response for seamless development & testing without SMS provider
-          otp,
           expiresIn: '10 minutes',
+          smsSent: smsResult.success,
+          provider: smsResult.provider || 'simulated',
+          // Returned in development for quick testing/debugging
+          ...(env.NODE_ENV === 'development' && { otp }),
         },
         'OTP generated and sent successfully'
       )

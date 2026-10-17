@@ -33,6 +33,8 @@ SUPABASE_STORAGE_BUCKET="upload"
 
 JWT_SECRET="quenchmark_super_secret_jwt_key_2026_secure"
 JWT_EXPIRES_IN="7d"
+
+FAST2SMS_API_KEY="your_fast2sms_api_key_here"
 ```
 
 ### 2. Available Scripts

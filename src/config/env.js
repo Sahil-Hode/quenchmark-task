@@ -19,4 +19,7 @@ export const env = {
   SUPABASE_URL: process.env.SUPABASE_URL || 'https://xzgxfzkmzfqoiikpvmif.supabase.co',
   SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY || '',
   SUPABASE_STORAGE_BUCKET: process.env.SUPABASE_STORAGE_BUCKET || 'upload',
+
+  // Fast2SMS
+  FAST2SMS_API_KEY: process.env.FAST2SMS_API_KEY || '',
 };
