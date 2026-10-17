@@ -55,14 +55,24 @@ export const checkout = async (req, res, next) => {
         status: 'CONFIRMED',
         paymentStatus: 'PAID',
         paymentMethod,
-        shippingAddress: shippingAddress || {
-          fullName: req.user.name || 'Demo Customer',
-          mobile: req.user.mobile,
-          addressLine: '123 Tech Avenue, Silicon Valley',
-          city: 'Bengaluru',
-          state: 'Karnataka',
-          postalCode: '560001',
-        },
+        shippingAddress:
+          typeof shippingAddress === 'string'
+            ? {
+                fullName: req.user.name || 'Demo Customer',
+                mobile: req.user.mobile,
+                addressLine: shippingAddress,
+                city: 'Bengaluru',
+                state: 'Karnataka',
+                postalCode: '560001',
+              }
+            : shippingAddress || {
+                fullName: req.user.name || 'Demo Customer',
+                mobile: req.user.mobile,
+                addressLine: '123 Tech Avenue, Silicon Valley',
+                city: 'Bengaluru',
+                state: 'Karnataka',
+                postalCode: '560001',
+              },
         items: {
           create: cart.items.map((item) => ({
             productId: item.productId,

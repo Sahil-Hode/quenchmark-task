@@ -3,15 +3,19 @@ import { z } from 'zod';
 export const checkoutOrderSchema = z.object({
   body: z.object({
     shippingAddress: z
-      .object({
-        fullName: z.string().optional(),
-        addressLine: z.string().optional(),
-        city: z.string().optional(),
-        state: z.string().optional(),
-        postalCode: z.string().optional(),
-      })
+      .union([
+        z.string(),
+        z.object({
+          fullName: z.string().optional(),
+          addressLine: z.string().optional(),
+          city: z.string().optional(),
+          state: z.string().optional(),
+          postalCode: z.string().optional(),
+        }),
+      ])
       .optional(),
     paymentMethod: z.string().optional().default('FAKE_CHECKOUT'),
+    notes: z.string().optional(),
   }),
 });
 
