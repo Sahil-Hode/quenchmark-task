@@ -13,6 +13,10 @@ model User {
   mobile       String     @unique
   name         String?
   email        String?
+  dob          String?
+  gender       String?
+  address      Json?
+  isOnboarded  Boolean    @default(false)
   otp          String?
   otpExpiresAt DateTime?
   role         String     @default("USER")

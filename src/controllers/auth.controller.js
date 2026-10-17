@@ -94,6 +94,10 @@ export const verifyOtp = async (req, res, next) => {
         mobile: true,
         name: true,
         email: true,
+        dob: true,
+        gender: true,
+        address: true,
+        isOnboarded: true,
         role: true,
         createdAt: true,
       },
@@ -141,6 +145,10 @@ export const getMe = async (req, res, next) => {
         mobile: true,
         name: true,
         email: true,
+        dob: true,
+        gender: true,
+        address: true,
+        isOnboarded: true,
         role: true,
         createdAt: true,
         cart: {
@@ -168,6 +176,46 @@ export const getMe = async (req, res, next) => {
         },
         'User profile retrieved'
       )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Update current user profile and address
+ */
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { name, email, dob, gender, address, isOnboarded } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name: name ? String(name).trim() : null }),
+        ...(email !== undefined && { email: email ? String(email).trim() : null }),
+        ...(dob !== undefined && { dob: dob ? String(dob).trim() : null }),
+        ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
+        ...(address !== undefined && { address }),
+        ...(isOnboarded !== undefined ? { isOnboarded } : { isOnboarded: true }),
+      },
+      select: {
+        id: true,
+        mobile: true,
+        name: true,
+        email: true,
+        dob: true,
+        gender: true,
+        address: true,
+        isOnboarded: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json(
+      new ApiResponse(200, { user: updatedUser }, 'Profile and address updated successfully')
     );
   } catch (error) {
     next(error);
