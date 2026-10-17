@@ -14,6 +14,17 @@ export const errorHandler = (err, req, res, next) => {
     message = err.message || 'Internal Server Error';
   }
 
+  // Never leak internal database or Prisma engine errors to client
+  if (
+    typeof message === 'string' &&
+    (message.includes('prisma') ||
+      message.includes('Prisma') ||
+      message.includes('invocation') ||
+      message.includes('Unknown field'))
+  ) {
+    message = 'Unable to complete verification. Please try again.';
+  }
+
   const response = {
     success: false,
     statusCode,

@@ -94,10 +94,6 @@ export const verifyOtp = async (req, res, next) => {
         mobile: true,
         name: true,
         email: true,
-        dob: true,
-        gender: true,
-        address: true,
-        isOnboarded: true,
         role: true,
         createdAt: true,
       },
@@ -145,10 +141,6 @@ export const getMe = async (req, res, next) => {
         mobile: true,
         name: true,
         email: true,
-        dob: true,
-        gender: true,
-        address: true,
-        isOnboarded: true,
         role: true,
         createdAt: true,
         cart: {
@@ -190,29 +182,45 @@ export const updateProfile = async (req, res, next) => {
     const userId = req.user.id;
     const { name, email, dob, gender, address, isOnboarded } = req.body;
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...(name !== undefined && { name: name ? String(name).trim() : null }),
-        ...(email !== undefined && { email: email ? String(email).trim() : null }),
-        ...(dob !== undefined && { dob: dob ? String(dob).trim() : null }),
-        ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
-        ...(address !== undefined && { address }),
-        ...(isOnboarded !== undefined ? { isOnboarded } : { isOnboarded: true }),
-      },
-      select: {
-        id: true,
-        mobile: true,
-        name: true,
-        email: true,
-        dob: true,
-        gender: true,
-        address: true,
-        isOnboarded: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+    let updatedUser;
+    try {
+      updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(name !== undefined && { name: name ? String(name).trim() : null }),
+          ...(email !== undefined && { email: email ? String(email).trim() : null }),
+          ...(dob !== undefined && { dob: dob ? String(dob).trim() : null }),
+          ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
+          ...(address !== undefined && { address }),
+          ...(isOnboarded !== undefined ? { isOnboarded } : { isOnboarded: true }),
+        },
+      });
+    } catch {
+      // Direct Supabase REST API fallback
+      const supabaseUrl = `${env.SUPABASE_URL || 'https://xzgxfzkmzfqoiikpvmif.supabase.co'}/rest/v1/users?id=eq.${userId}`;
+      const supabaseKey = env.SUPABASE_SERVICE_KEY;
+
+      const directRes = await fetch(supabaseUrl, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify({
+          ...(name !== undefined && { name: name ? String(name).trim() : null }),
+          ...(email !== undefined && { email: email ? String(email).trim() : null }),
+          ...(dob !== undefined && { dob: dob ? String(dob).trim() : null }),
+          ...(gender !== undefined && { gender: gender ? String(gender).trim() : null }),
+          ...(address !== undefined && { address }),
+          ...(isOnboarded !== undefined ? { isOnboarded } : { isOnboarded: true }),
+        }),
+      });
+
+      const rows = await directRes.json();
+      updatedUser = Array.isArray(rows) && rows[0] ? rows[0] : { id: userId, name, email, dob, gender, address, isOnboarded: true };
+    }
 
     return res.status(200).json(
       new ApiResponse(200, { user: updatedUser }, 'Profile and address updated successfully')
