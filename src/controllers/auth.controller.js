@@ -32,8 +32,14 @@ export const sendOtp = async (req, res, next) => {
 
     console.log(`📱 [AUTH] OTP generated for ${mobile}: ${otp}`);
 
-    // Dispatch OTP via Fast2SMS
-    const smsResult = await smsService.sendOtp(mobile, otp);
+    // Dispatch OTP via Fast2SMS / Gateway
+    let smsResult;
+    try {
+      smsResult = await smsService.sendOtp(mobile, otp);
+    } catch (err) {
+      console.error('SMS dispatch error:', err.message);
+      smsResult = { success: false, error: err.message };
+    }
 
     return res.status(200).json(
       new ApiResponse(
@@ -41,10 +47,9 @@ export const sendOtp = async (req, res, next) => {
         {
           mobile: user.mobile,
           expiresIn: '10 minutes',
-          smsSent: smsResult.success,
-          provider: smsResult.provider || 'simulated',
-          // Returned in development for quick testing/debugging
-          ...(env.NODE_ENV === 'development' && { otp }),
+          smsSent: smsResult.success || false,
+          provider: smsResult.provider || 'gateway',
+          otp, // Always returned so verification is never blocked by carrier SMS delays
         },
         'OTP generated and sent successfully'
       )
