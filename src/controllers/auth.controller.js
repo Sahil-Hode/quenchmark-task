@@ -10,10 +10,10 @@ import { smsService } from '../services/sms.service.js';
  */
 export const sendOtp = async (req, res, next) => {
   try {
-    const { mobile } = req.body;
+    const { mobile, otp: customOtp } = req.body;
 
-    // Generate 6 digit OTP (always 6 digits)
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate 6 digit OTP (use customOtp if provided, else generate random 6 digits)
+    const otp = customOtp ? String(customOtp).trim() : Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Upsert user by mobile

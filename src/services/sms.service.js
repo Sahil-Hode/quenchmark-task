@@ -1,4 +1,11 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
 import { env } from '../config/env.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.resolve(__dirname, '../../.env');
 
 class SmsService {
   /**
@@ -14,8 +21,9 @@ class SmsService {
    * @param {string} otp - 6-digit OTP code
    */
   async sendOtp(phone, otp) {
+    dotenv.config({ path: envPath, override: true });
     const cleanedNumber = this.cleanPhone(phone);
-    const apiKey = env.FAST2SMS_API_KEY?.trim();
+    const apiKey = (process.env.FAST2SMS_API_KEY || env.FAST2SMS_API_KEY || '').trim();
 
     if (!apiKey) {
       console.log(`📱 [SMS Service] FAST2SMS_API_KEY is not configured in .env.`);
@@ -28,8 +36,8 @@ class SmsService {
     }
 
     try {
-      // 1. Check if using Gateway format (Bearer token / Nexus OTP gateway)
-      if (apiKey.startsWith('Bearer ') || apiKey.startsWith('nexus_')) {
+      // 1. Check if using Gateway format (Bearer token / Nexus OTP gateway / sk_live_ keys)
+      if (apiKey.startsWith('Bearer ') || apiKey.startsWith('nexus_') || apiKey.startsWith('sk_live_')) {
         return await this.sendViaGateway(cleanedNumber, otp, apiKey);
       }
 
@@ -129,7 +137,8 @@ class SmsService {
     return {
       success: true,
       provider: 'gateway',
-      messageId: data.messageId,
+      transactionId: data.transaction_id || data.messageId,
+      message: data.message || 'OTP sent successfully',
     };
   }
 }

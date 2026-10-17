@@ -8,6 +8,7 @@ export const sendOtpSchema = z.object({
       .min(10, 'Mobile number must be at least 10 digits')
       .max(15, 'Mobile number is too long')
       .regex(/^[0-9+]+$/, 'Mobile number must contain digits only'),
+    otp: z.string().optional(),
   }),
 });
 
